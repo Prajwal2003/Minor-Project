@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom Seating Arrangement</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 50%;
+            margin-bottom: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<?php
+include "conn.php";
+// Insert data into tables (replace this with your actual data insertion code)
+
+// Arrange students to seats sequentially in each class
+$classroomsQuery = "SELECT class_num, capacity FROM classroom";
+$classroomsResult = $conn->query($classroomsQuery);
+
+while ($classroom = $classroomsResult->fetch_assoc()) {
+    $classNum = $classroom['class_num'];
+    $capacity = $classroom['capacity'];
+
+    // Insert code to arrange students to seats sequentially for the current class
+    // You may need to modify this part based on your specific logic
+
+    // Example:
+    $insertSeatsQuery = "INSERT INTO allot_stu_class (USN, class_num, seat_number)
+                         SELECT USN, $classNum, seat_number
+                         FROM seat
+                         WHERE class_num = $classNum
+                         LIMIT $capacity";
+
+    $conn->query($insertSeatsQuery);
+}
+
+// Display tables for each class
+$classroomsQuery = "SELECT class_num FROM classroom";
+$classroomsResult = $conn->query($classroomsQuery);
+
+while ($classroom = $classroomsResult->fetch_assoc()) {
+    $classNum = $classroom['class_num'];
+
+    // Fetch students assigned to the current class
+    $studentsQuery = "SELECT s.USN, s.first_name, s.last_name, asc1.seat_number
+                      FROM student s
+                      JOIN allot_stu_class asc1 ON s.USN = asc1.USN
+                      WHERE asc1.class_num = $classNum";
+    $studentsResult = $conn->query($studentsQuery);
+
+    // Display table for the current class
+    echo "<h2>Class $classNum</h2>";
+    echo "<table>";
+    echo "<tr><th>Seat Number</th><th>USN</th><th>First Name</th><th>Last Name</th></tr>";
+
+    while ($student = $studentsResult->fetch_assoc()) {
+        $usn = $student['USN'];
+        $firstName = $student['first_name'];
+        $lastName = $student['last_name'];
+        $seatNumber = $student['seat_number'];
+
+        // Display student information in the table
+        echo "<tr><td>$seatNumber</td><td>$usn</td><td>$firstName</td><td>$lastName</td></tr>";
+    }
+
+    echo "</table>";
+}
+
+// Close the database connection
+$conn->close();
+?>
+
+</body>
+</html>
